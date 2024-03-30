@@ -3,12 +3,13 @@ PFSP Problem Solver
 
 @Author: Panagiotis Spanakis
 """
-
+# Import the necessary libraries
 from typing import Tuple
 import pandas as pd
 import numpy as np
 from collections import deque
 from copy import deepcopy
+import time
 
 
 class DataLoader:
@@ -278,8 +279,8 @@ class GeneticAlgorithmHybrid:
                 best_makespan_overall = best_makespan
                 # If the best solution is the optimal solution , break the loop
                 if best_makespan_overall == 1278:
-                   print("Found optimal solution!")
-                   break
+                    print("Found optimal solution!")
+                    break
 
             print(f"Generation {generation + 1}: Best Makespan = {best_makespan}")
 
@@ -301,11 +302,14 @@ if __name__ == '__main__':
     tournament_size = 5
     mutation_rate = 0.2
     tabu_tenure = 5
-    tabu_search_frequency = 2  # Apply TS every 2 generations
+    tabu_search_frequency = 5  # Apply TS every 5 generations
     tabu_iterations = 50
 
     # Set a random seed for reproducibility
     np.random.seed(42)
+
+    # Time the execution of the Genetic Algorithm
+    start_time = time.time()
 
     # Run the Genetic Algorithm
     best_solution, best_makespan = ga.genetic_algorithm(pop_size=population_size, generations=num_generations,
@@ -314,10 +318,19 @@ if __name__ == '__main__':
                                                         tabu_iterations=tabu_iterations,
                                                         tabu_search_frequency=tabu_search_frequency)
 
+    # Save the execution time
+    execution_time = time.time() - start_time
+
     # Print the best solution and its makespan
     print(f"Best Solution: {best_solution}")
     print(f"Best Makespan: {best_makespan}")
+    # Print the execution time
+    print(f"Execution Time: {execution_time} seconds")
 
-    # Write the best solution to a file
+    # Write the best solution to a file and save it along with the execution time
     with open('solution.csv', 'w') as f:
         f.write(','.join(map(str, best_solution)))
+        f.write('\n')
+        f.write(str(best_makespan))
+        f.write('\n')
+        f.write(str(execution_time))
