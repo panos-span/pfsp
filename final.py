@@ -1,5 +1,5 @@
 """
-PFSP Problem Solver
+PFSP Problem Solver with a Hybrid Genetic Algorithm and Tabu Search
 
 @Author: Panagiotis Spanakis
 """
@@ -8,7 +8,6 @@ from typing import Tuple
 import pandas as pd
 import numpy as np
 from collections import deque
-from copy import deepcopy
 import time
 
 
@@ -27,13 +26,13 @@ class DataLoader:
         self.data.columns = ['J' + str(i) for i in range(1, self.data.shape[1] + 1)]
         self.data.index = ['M' + str(i) for i in range(1, self.data.shape[0] + 1)]
 
-    def data_to_numpy(self, data: pd.DataFrame) -> np.ndarray:
+    def data_to_numpy(self) -> np.ndarray:
         """
         Convert the data to a numpy array
         :param data: the pandas DataFrame
         :return: A numpy array
         """
-        self.data = data.to_numpy()
+        self.data = self.data.to_numpy()
         return self.data
 
 
@@ -230,6 +229,7 @@ class GeneticAlgorithmHybrid:
 
         # Begin the genetic algorithm loop
         for generation in range(generations):
+            # Calculate the fitness (makespan) of each individual of the population
             fitness = [self.calculate_makespan(individual) for individual in population]
 
             # Tabu Search integration
@@ -243,7 +243,7 @@ class GeneticAlgorithmHybrid:
                                                                                tabu_list,
                                                                                tabu_tenure, tabu_iterations)
                         # Update the population and the fitness
-                        population[i] = deepcopy(improved_solution)
+                        population[i] = improved_solution.copy()
                         fitness[i] = improved_fitness
 
             # Initialize a new population
@@ -263,7 +263,7 @@ class GeneticAlgorithmHybrid:
                 new_population.append(child)
 
             # Update the population
-            population = deepcopy(new_population)
+            population = new_population.copy()
             # Update the fitness of the population
             fitness = [self.calculate_makespan(individual) for individual in population]
 
@@ -277,7 +277,7 @@ class GeneticAlgorithmHybrid:
             if best_makespan < best_makespan_overall:
                 best_sol_overall = best_solution
                 best_makespan_overall = best_makespan
-                # If the best solution is the optimal solution , break the loop
+                # If the best solution is the optimal solution, break the loop
                 if best_makespan_overall == 1278:
                     print("Found optimal solution!")
                     break
@@ -292,7 +292,7 @@ if __name__ == '__main__':
     data_path = 'input.csv'
     data_loader = DataLoader(data_path)
     # Convert the data to a numpy array
-    data = data_loader.data_to_numpy(data_loader.data)
+    data = data_loader.data_to_numpy()
     # Initialize the Genetic Algorithm Class with the numpy array
     ga = GeneticAlgorithmHybrid(data)
 
@@ -301,7 +301,7 @@ if __name__ == '__main__':
     num_generations = 100
     tournament_size = 5
     mutation_rate = 0.2
-    tabu_tenure = 5
+    tabu_tenure = 5  # Size of the tabu list
     tabu_search_frequency = 5  # Apply TS every 5 generations
     tabu_iterations = 50
 
@@ -325,12 +325,15 @@ if __name__ == '__main__':
     print(f"Best Solution: {best_solution}")
     print(f"Best Makespan: {best_makespan}")
     # Print the execution time
-    print(f"Execution Time: {execution_time} seconds")
+    print(f"Execution Time: {round(execution_time, 2)} seconds")
 
     # Write the best solution to a file and save it along with the execution time
     with open('solution.csv', 'w') as f:
-        f.write(','.join(map(str, best_solution)))
+        f.write("Optimal Solution:\n")
+        f.write(', '.join(map(str, best_solution)))
         f.write('\n')
+        f.write("Makespan:\n")
         f.write(str(best_makespan))
         f.write('\n')
-        f.write(str(execution_time))
+        f.write("Execution Time:\n")
+        f.write(str(round(execution_time, 2)) + ' seconds')
