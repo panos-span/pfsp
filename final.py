@@ -8,7 +8,10 @@ from typing import Tuple
 import pandas as pd
 import numpy as np
 from collections import deque
-import time
+from time import time
+
+# Define the optimal makespan for the problem
+OPTIMAL_MAKESPAN = 1278
 
 
 class DataLoader:
@@ -65,6 +68,7 @@ class GeneticAlgorithmHybrid:
         :param solution: The solution to evaluate
         :return: The calculated makespan
         """
+        # Initialize a matrix to store the completion times of each job on each machine
         times = np.zeros((self.machines, self.jobs))
 
         for m in range(self.machines):
@@ -195,6 +199,11 @@ class GeneticAlgorithmHybrid:
                 # Clear tabu list if a better solution is found
                 tabu_list.clear()
 
+                # Check if the optimal solution has been found
+                if best_makespan == OPTIMAL_MAKESPAN:
+                    print(f"Found optimal solution at iteration {iteration + 1}!")
+                    return best_solution, best_makespan
+
             # Update the tabu list
             tabu_list.append(current_move)
 
@@ -206,7 +215,7 @@ class GeneticAlgorithmHybrid:
 
     def genetic_algorithm(self, pop_size: int = 100, generations: int = 100, mutation_rate: float = 0.01,
                           tournament_size: int = 3, tabu_tenure: int = 10, tabu_search_frequency: int = 2,
-                          tabu_iterations: int = 50) \
+                          tabu_iterations: int = 50, tabu_search_percentage: float = 0.1) \
             -> Tuple[np.ndarray, int]:
         """
         The Genetic Algorithm for the PFSP problem
@@ -215,13 +224,16 @@ class GeneticAlgorithmHybrid:
         :param mutation_rate: the mutation rate
         :param tournament_size: the size of the tournament selection
         :param tabu_tenure: the tabu tenure
+        :param tabu_search_frequency: the frequency to apply Tabu Search
+        :param tabu_iterations: the number of iterations to perform Tabu Search
+        :param tabu_search_percentage: the percentage of the population to apply Tabu Search
         :return: the best solution and its makespan
         """
 
         # Initialize the population
         population = self.initialize_population(pop_size)
         # Initialize the tabu list as a deque
-        tabu_list = deque()
+        tabu_list = deque(maxlen=tabu_tenure)
 
         # Initialize the best solution and its makespan
         best_sol_overall = None
@@ -235,13 +247,17 @@ class GeneticAlgorithmHybrid:
             # Tabu Search integration
             if generation % tabu_search_frequency == 0:
                 for i in range(len(population)):
-                    # Apply TS to 20% of the population
-                    if np.random.rand() < 0.2:
+                    # Apply TS to (tabu_search_percentage) of the population
+                    if np.random.rand() < tabu_search_percentage:
                         # Apply tabu search to the individual
-                        individual_fitness = fitness[i]
-                        improved_solution, improved_fitness = self.tabu_search(population[i], individual_fitness,
+                        improved_solution, improved_fitness = self.tabu_search(population[i], fitness[i],
                                                                                tabu_list,
                                                                                tabu_tenure, tabu_iterations)
+
+                        # Check if we have found the optimal solution
+                        if improved_fitness == OPTIMAL_MAKESPAN:
+                            return improved_solution, improved_fitness
+
                         # Update the population and the fitness
                         population[i] = improved_solution.copy()
                         fitness[i] = improved_fitness
@@ -278,7 +294,7 @@ class GeneticAlgorithmHybrid:
                 best_sol_overall = best_solution
                 best_makespan_overall = best_makespan
                 # If the best solution is the optimal solution, break the loop
-                if best_makespan_overall == 1278:
+                if best_makespan_overall == OPTIMAL_MAKESPAN:
                     print("Found optimal solution!")
                     break
 
@@ -302,24 +318,29 @@ if __name__ == '__main__':
     tournament_size = 5
     mutation_rate = 0.2
     tabu_tenure = 5  # Size of the tabu list
-    tabu_search_frequency = 5  # Apply TS every 5 generations
+    tabu_search_frequency = 3  # Apply TS every 3 generations
     tabu_iterations = 50
+    tabu_search_percentage = 0.1  # The percentage of the population to apply Tabu Search
 
     # Set a random seed for reproducibility
     np.random.seed(42)
 
     # Time the execution of the Genetic Algorithm
-    start_time = time.time()
+    start_time = time()
 
     # Run the Genetic Algorithm
     best_solution, best_makespan = ga.genetic_algorithm(pop_size=population_size, generations=num_generations,
                                                         mutation_rate=mutation_rate,
                                                         tournament_size=tournament_size, tabu_tenure=tabu_tenure,
                                                         tabu_iterations=tabu_iterations,
-                                                        tabu_search_frequency=tabu_search_frequency)
+                                                        tabu_search_frequency=tabu_search_frequency,
+                                                        tabu_search_percentage=tabu_search_percentage)
+
+    # best_solution, best_makespan = ga.tabu_search(ga.initialize_population(2)[1],
+    #                                              ga.calculate_makespan(ga.initialize_population(1)[0]), deque(), 15, 1000)
 
     # Save the execution time
-    execution_time = time.time() - start_time
+    execution_time = time() - start_time
 
     # Print the best solution and its makespan
     print(f"Best Solution: {best_solution}")
