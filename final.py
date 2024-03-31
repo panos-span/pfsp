@@ -264,6 +264,8 @@ class GeneticAlgorithmHybrid:
 
             # Initialize a new population
             new_population = []
+            # Initialize the new fitness
+            new_fitness = []
 
             # Generate the new population
             for _ in range(pop_size):
@@ -277,11 +279,13 @@ class GeneticAlgorithmHybrid:
                     child = self.swap_mutation(child)
                 # Append the child to the new population
                 new_population.append(child)
+                # Calculate the fitness of the child
+                new_fitness.append(self.calculate_makespan(child))
 
             # Update the population
             population = new_population.copy()
             # Update the fitness of the population
-            fitness = [self.calculate_makespan(individual) for individual in population]
+            fitness = new_fitness.copy()
 
             # Find the best solution and its makespan
             best_idx = np.argmin(fitness)
@@ -291,7 +295,7 @@ class GeneticAlgorithmHybrid:
 
             # Check if the best solution is better than the overall best solution
             if best_makespan < best_makespan_overall:
-                best_sol_overall = best_solution
+                best_sol_overall = best_solution.copy()
                 best_makespan_overall = best_makespan
                 # If the best solution is the optimal solution, break the loop
                 if best_makespan_overall == OPTIMAL_MAKESPAN:
@@ -335,9 +339,6 @@ if __name__ == '__main__':
                                                         tabu_iterations=tabu_iterations,
                                                         tabu_search_frequency=tabu_search_frequency,
                                                         tabu_search_percentage=tabu_search_percentage)
-
-    # best_solution, best_makespan = ga.tabu_search(ga.initialize_population(2)[1],
-    #                                              ga.calculate_makespan(ga.initialize_population(1)[0]), deque(), 15, 1000)
 
     # Save the execution time
     execution_time = time() - start_time
