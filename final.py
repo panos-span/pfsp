@@ -9,9 +9,12 @@ import pandas as pd
 import numpy as np
 from collections import deque
 from time import time
+import json
 
 # Define the optimal makespan for the problem
 OPTIMAL_MAKESPAN = 1278
+# Define the number of generations to run the Genetic Algorithm
+NUM_GENERATIONS = 100
 
 
 class DataLoader:
@@ -316,29 +319,19 @@ if __name__ == '__main__':
     # Initialize the Genetic Algorithm Class with the numpy array
     ga = GeneticAlgorithmHybrid(data)
 
-    # Set the parameters for the Genetic Algorithm
-    population_size = 50
-    num_generations = 100
-    tournament_size = 5
-    mutation_rate = 0.2
-    tabu_tenure = 5  # Size of the tabu list
-    tabu_search_frequency = 3  # Apply TS every 3 generations
-    tabu_iterations = 50
-    tabu_search_percentage = 0.1  # The percentage of the population to apply Tabu Search
+    # Set the parameters for the Genetic Algorithm from the optimal_parameters.json file
+    best_params = json.load(open('optimal_params.json'))
+    # Set the number of generations to 10, because the optimal parameters were found with 10 generations
+    best_params['generations'] = NUM_GENERATIONS
 
     # Set a random seed for reproducibility
-    np.random.seed(42)
+    np.random.seed(2)
 
     # Time the execution of the Genetic Algorithm
     start_time = time()
 
     # Run the Genetic Algorithm
-    best_solution, best_makespan = ga.genetic_algorithm(pop_size=population_size, generations=num_generations,
-                                                        mutation_rate=mutation_rate,
-                                                        tournament_size=tournament_size, tabu_tenure=tabu_tenure,
-                                                        tabu_iterations=tabu_iterations,
-                                                        tabu_search_frequency=tabu_search_frequency,
-                                                        tabu_search_percentage=tabu_search_percentage)
+    best_solution, best_makespan = ga.genetic_algorithm(**best_params)
 
     # Save the execution time
     execution_time = time() - start_time
