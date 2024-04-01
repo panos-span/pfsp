@@ -1,0 +1,9 @@
+{
+  "pop_size": 94,
+  "mutation_rate": 0.46184110214553276,
+  "tournament_size": 2,
+  "tabu_tenure": 14,
+  "tabu_search_frequency": 6,
+  "tabu_iterations": 31,
+  "tabu_search_percentage": 0.13825176496483954
+}
