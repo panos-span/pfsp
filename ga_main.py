@@ -137,10 +137,11 @@ class GeneticAlgorithmHybrid:
                 # Clear tabu list if a better solution is found
                 tabu_list.clear()
 
+            if len(tabu_list) == tenure:
+                tabu_list.popleft()
+
             # Update the tabu list
             tabu_list.append(move)
-            if len(tabu_list) > tenure:
-                tabu_list.popleft()
 
         return best_solution, best_makespan
 
